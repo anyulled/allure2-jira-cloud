@@ -73,7 +73,7 @@ subprojects {
             mavenBom("io.qameta.allure:allure-bom:2.24.0")
         }
         dependencies {
-            dependency("ch.qos.logback:logback-classic:1.3.11")
+            dependency("ch.qos.logback:logback-classic:1.4.11")
             dependency("com.beust:jcommander:1.82")
             dependency("com.github.spotbugs:spotbugs-annotations:4.8.0")
             dependency("com.opencsv:opencsv:4.6")
