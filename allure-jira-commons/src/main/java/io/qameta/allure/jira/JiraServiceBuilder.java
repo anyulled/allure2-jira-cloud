@@ -78,8 +78,8 @@ public class JiraServiceBuilder {
     }
 
     public JiraServiceBuilder defaults() {
-        String clientIdEnv = getProperty(ALLURE_JIRA_CLIENT_ID).orElse(null);
-        String clientSecretEnv = getProperty(ALLURE_JIRA_CLIENT_SECRET).orElse(null);
+        final String clientIdEnv = getProperty(ALLURE_JIRA_CLIENT_ID).orElse(null);
+        final String clientSecretEnv = getProperty(ALLURE_JIRA_CLIENT_SECRET).orElse(null);
         if (clientIdEnv != null && clientSecretEnv != null) {
             clientId(clientId);
             clientSecret(clientSecret);
