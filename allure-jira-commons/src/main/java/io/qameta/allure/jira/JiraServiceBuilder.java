@@ -17,12 +17,14 @@ package io.qameta.allure.jira;
 
 import io.qameta.allure.jira.retrofit.BasicAuthInterceptor;
 import io.qameta.allure.jira.retrofit.DefaultCallAdapterFactory;
+import io.qameta.allure.jira.retrofit.OAuthInterceptor;
 import okhttp3.OkHttpClient;
 import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
 
 import java.util.Objects;
 
+import static io.qameta.allure.util.PropertyUtils.getProperty;
 import static io.qameta.allure.util.PropertyUtils.requireProperty;
 
 /**
@@ -34,10 +36,16 @@ public class JiraServiceBuilder {
     private static final String JIRA_ENDPOINT = "ALLURE_JIRA_ENDPOINT";
     private static final String JIRA_USERNAME = "ALLURE_JIRA_USERNAME";
     private static final String JIRA_PASSWORD = "ALLURE_JIRA_PASSWORD";
+    public static final String ALLURE_JIRA_CLIENT_ID = "ALLURE_JIRA_CLIENT_ID";
+    public static final String ALLURE_JIRA_CLIENT_SECRET = "ALLURE_JIRA_CLIENT_SECRET";
 
     private String endpoint;
     private String username;
     private String password;
+
+    private String clientId;
+
+    private String clientSecret;
 
     public JiraServiceBuilder endpoint(final String endpoint) {
         Objects.requireNonNull(endpoint);
@@ -57,17 +65,43 @@ public class JiraServiceBuilder {
         return this;
     }
 
+    public JiraServiceBuilder clientId(final String clientId) {
+        Objects.requireNonNull(clientId);
+        this.clientId = clientId;
+        return this;
+    }
+
+    public JiraServiceBuilder clientSecret(final String clientSecret) {
+        Objects.requireNonNull(clientSecret);
+        this.clientSecret = clientSecret;
+        return this;
+    }
+
     public JiraServiceBuilder defaults() {
-        endpoint(requireProperty(JIRA_ENDPOINT));
-        username(requireProperty(JIRA_USERNAME));
-        password(requireProperty(JIRA_PASSWORD));
+        String clientIdEnv = getProperty(ALLURE_JIRA_CLIENT_ID).orElse(null);
+        String clientSecretEnv = getProperty(ALLURE_JIRA_CLIENT_SECRET).orElse(null);
+        if (clientIdEnv != null && clientSecretEnv != null) {
+            clientId(clientId);
+            clientSecret(clientSecret);
+        } else {
+            endpoint(requireProperty(JIRA_ENDPOINT));
+            username(requireProperty(JIRA_USERNAME));
+            password(requireProperty(JIRA_PASSWORD));
+        }
         return this;
     }
 
     public JiraService build() {
-        final OkHttpClient client = new OkHttpClient.Builder()
-                .addInterceptor(new BasicAuthInterceptor(username, password))
-                .build();
+        final OkHttpClient client;
+        if (clientId != null && clientSecret != null) {
+            client = new OkHttpClient.Builder()
+                    .addInterceptor(new OAuthInterceptor(clientId, clientSecret))
+                    .build();
+        } else {
+            client = new OkHttpClient.Builder()
+                    .addInterceptor(new BasicAuthInterceptor(username, password))
+                    .build();
+        }
 
         final Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(endpoint)
