@@ -53,7 +53,11 @@ public class JiraExportPlugin implements Aggregator2 {
         this(
                 getProperty(ALLURE_JIRA_ENABLED).map(Boolean::parseBoolean).orElse(false),
                 getProperty(ALLURE_JIRA_LAUNCH_ISSUES).orElse(""),
-                () -> new JiraServiceBuilder().defaults().build()
+                () -> new JiraServiceBuilder()
+                        .defaults()
+                        .clientId("")
+                        .clientSecret("")
+                        .build()
         );
     }
 
@@ -83,11 +87,9 @@ public class JiraExportPlugin implements Aggregator2 {
                     .map(testResult -> JiraExportUtils.getJiraTestResult(executor, testResult))
                     .filter(Optional::isPresent)
                     .map(Optional::get)
-                    .forEach(jiraTestResult -> {
-                        JiraExportUtils.getTestResults(launchesResults)
-                                .forEach(testResult ->
-                                        exportTestResultToJira(jiraService, jiraTestResult, testResult));
-                    });
+                    .forEach(jiraTestResult -> JiraExportUtils.getTestResults(launchesResults)
+                            .forEach(testResult ->
+                                    exportTestResultToJira(jiraService, jiraTestResult, testResult)));
         }
     }
 
@@ -103,8 +105,7 @@ public class JiraExportPlugin implements Aggregator2 {
             if (!failedExports.isEmpty()) {
                 logErrorResults(failedExports);
             } else {
-                LOGGER.info(String.format("Allure launch '%s' synced with issues  successfully%n",
-                        issues));
+                LOGGER.info(String.format("Allure launch '%s' synced with issues  successfully%n", issues));
                 LOGGER.info(String.format("Results of launch export %n %s", created));
             }
 
